@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 void main() {
@@ -28,12 +31,39 @@ class ChatPage extends StatefulWidget {
 }
 
 class ChatPageState extends State<ChatPage> {
-  int _counter = 0;
+  ServerSocket? server;
+  Socket? client;
+  StreamSubscription? stream;
+  TextEditingController controller = TextEditingController();
+  String msg = "";
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
+  Future<void> setServer() async {
+    server = await ServerSocket.bind('127.0.0.1', 12356).then((value) {
+      stream = value.listen(
+        (event) {
+          controller.text = event.toString();
+        },
+        onDone: () {},
+        onError: () {},
+        cancelOnError: true,
+      );
     });
+  }
+
+  Future<void> setClient() async {
+    client = await Socket.connect('127.0.0.1', 12356);
+    client?.write('Hello, World!');
+  }
+
+  Future<void> send() async {
+    if (server == null) {
+      client?.write(controller.text);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -46,20 +76,29 @@ class ChatPageState extends State<ChatPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            TextField(
+              controller: controller,
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            TextButton(
+              onPressed: () {
+                send();
+              },
+              child: const Text("Send/Check"),
+            ),
+            TextButton(
+              onPressed: () {
+                setServer();
+              },
+              child: const Text("Server"),
+            ),
+            TextButton(
+              onPressed: () {
+                setClient();
+              },
+              child: const Text("Client"),
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }

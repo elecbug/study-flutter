@@ -28,10 +28,10 @@ class MainPage extends StatefulWidget {
   final String title;
 
   @override
-  State<MainPage> createState() => _MyHomePageState();
+  State<MainPage> createState() => MainPageState();
 }
 
-class _MyHomePageState extends State<MainPage> {
+class MainPageState extends State<MainPage> {
   TextEditingController textController = TextEditingController();
   TextEditingController pathController = TextEditingController();
 
