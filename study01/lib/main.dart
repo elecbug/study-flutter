@@ -1,10 +1,7 @@
 import 'dart:io';
-import 'dart:ui';
 
 import 'package:filesystem_picker/filesystem_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 
 void main() {
   runApp(const MemoApp());
@@ -47,29 +44,29 @@ class _MyHomePageState extends State<MainPage> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Padding(
+          const Padding(
             padding: EdgeInsets.all(5),
             child: Text("File name to save"),
           ),
           Padding(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: TextField(
               controller: pathController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 hintText: 'Enter file name',
               ),
             ),
           ),
-          Padding(
+          const Padding(
             padding: EdgeInsets.all(5),
             child: Text("Text data"),
           ),
           Padding(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             child: TextFormField(
               controller: textController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: UnderlineInputBorder(),
                 hintText: 'Enter text',
               ),
@@ -80,12 +77,12 @@ class _MyHomePageState extends State<MainPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               TextButton(
-                child: Text('Load'),
                 onPressed: load,
+                child: const Text('Load'),
               ),
               TextButton(
-                child: Text('Save'),
                 onPressed: save,
+                child: const Text('Save'),
               )
             ],
           ),
@@ -120,9 +117,9 @@ class _MyHomePageState extends State<MainPage> {
   void showSnackBar(BuildContext context, String text) {
     SnackBar snackBar = SnackBar(
       content: Text(text),
-      duration: Duration(seconds: 4), //default is 4s
+      duration: const Duration(seconds: 4),
     );
-    // Find the Scaffold in the widget tree and use it to show a SnackBar.
+
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
