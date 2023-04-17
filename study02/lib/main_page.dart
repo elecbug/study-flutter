@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:study02/bomb_button.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key, required this.title});
@@ -13,13 +14,9 @@ class MainPage extends StatefulWidget {
 
 class MainPageState extends State<MainPage> {
   final int _defaultEdge = 10, _defaultBombs = 10;
-  final String _empty = "", _bomb = "💥";
-  final int _emptyNum = 0, _bombNum = -1;
 
   late int _edge = _defaultEdge, _bombs = _defaultBombs;
-  late List<List<ElevatedButton>> _buttonMatrix;
-  late List<List<int>> _matrix;
-  late List<List<bool>> _pressed;
+  late List<List<BombButton>> btn;
 
   late Row _mainRow;
   late Timer _endTimer;
@@ -30,39 +27,39 @@ class MainPageState extends State<MainPage> {
     while (sum < totalBombs) {
       int x = Random(DateTime.now().microsecond * 7).nextInt(max),
           y = Random(DateTime.now().microsecond * 3).nextInt(max);
-      if (_matrix[x][y] != _bombNum) {
-        _matrix[x][y] = _bombNum;
+      if (!btn[x][y].isBomb()) {
+        btn[x][y].setToBomb();
         sum++;
       }
     }
   }
 
-  void makeNums(int max) {
-    for (int x = 0; x < _defaultEdge; x++) {
-      for (int y = 0; y < _defaultEdge; y++) {
-        if (_matrix[x][y] == _bombNum) continue;
+  void makeNums(int edge) {
+    for (int x = 0; x < edge; x++) {
+      for (int y = 0; y < edge; y++) {
+        if (btn[x][y].isBomb()) continue;
 
         int nearBombs = 0;
         if (x > 0) {
-          if (y > 0 && _matrix[x - 1][y - 1] == _bombNum) nearBombs++;
-          if (y < max - 1 && _matrix[x - 1][y + 1] == _bombNum) nearBombs++;
-          if (_matrix[x - 1][y] == _bombNum) nearBombs++;
+          if (y > 0 && btn[x - 1][y - 1].isBomb()) nearBombs++;
+          if (y < edge - 1 && btn[x - 1][y + 1].isBomb()) nearBombs++;
+          if (btn[x - 1][y].isBomb()) nearBombs++;
         }
-        if (x < max - 1) {
-          if (y > 0 && _matrix[x + 1][y - 1] == _bombNum) nearBombs++;
-          if (y < max - 1 && _matrix[x + 1][y + 1] == _bombNum) nearBombs++;
-          if (_matrix[x + 1][y] == _bombNum) nearBombs++;
+        if (x < edge - 1) {
+          if (y > 0 && btn[x + 1][y - 1].isBomb()) nearBombs++;
+          if (y < edge - 1 && btn[x + 1][y + 1].isBomb()) nearBombs++;
+          if (btn[x + 1][y].isBomb()) nearBombs++;
         }
-        if (y > 0 && _matrix[x][y - 1] == _bombNum) nearBombs++;
-        if (y < max - 1 && _matrix[x][y + 1] == _bombNum) nearBombs++;
+        if (y > 0 && btn[x][y - 1].isBomb()) nearBombs++;
+        if (y < edge - 1 && btn[x][y + 1].isBomb()) nearBombs++;
 
-        _matrix[x][y] = nearBombs;
+        btn[x][y].setNearBombs(nearBombs);
       }
     }
   }
 
   void onPressed(int x, int y, int edge, [bool check = false]) {
-    _pressed[x][y] = true;
+    btn[x][y].onPressed();
 
     if (check || _endTimer.isActive) {
       return;
@@ -75,69 +72,65 @@ class MainPageState extends State<MainPage> {
       });
     }
 
-    if (_matrix[x][y] == 0) {
+    if (btn[x][y].getNearBombs() == 0) {
+      print("$x, $y clicked\r\n");
       if (x > 0) {
-        if (!_pressed[x - 1][y]) onPressed(x - 1, y, edge);
-        if (y > 0 && !_pressed[x - 1][y - 1]) onPressed(x - 1, y - 1, edge);
-        if (y < edge - 1 && !_pressed[x - 1][y + 1])
+        if (!btn[x - 1][y].isPressed()) onPressed(x - 1, y, edge);
+        if (y > 0 && !btn[x - 1][y - 1].isPressed())
+          onPressed(x - 1, y - 1, edge);
+        if (y < edge - 1 && !btn[x - 1][y + 1].isPressed())
           onPressed(x - 1, y + 1, edge);
       }
       if (x < edge - 1) {
-        if (!_pressed[x + 1][y]) onPressed(x + 1, y, edge);
-        if (y > 0 && !_pressed[x + 1][y - 1]) onPressed(x + 1, y - 1, edge);
-        if (y < edge - 1 && !_pressed[x + 1][y + 1])
+        if (!btn[x + 1][y].isPressed()) onPressed(x + 1, y, edge);
+        if (y > 0 && !btn[x + 1][y - 1].isPressed())
+          onPressed(x + 1, y - 1, edge);
+        if (y < edge - 1 && !btn[x + 1][y + 1].isPressed())
           onPressed(x + 1, y + 1, edge);
       }
-      if (y > 0 && !_pressed[x][y - 1]) {
+      if (y > 0 && !btn[x][y - 1].isPressed()) {
         onPressed(x, y - 1, edge);
       }
-      if (y < edge - 1 && !_pressed[x][y + 1]) {
+      if (y < edge - 1 && !btn[x][y + 1].isPressed()) {
         onPressed(x, y + 1, edge);
       }
-    } else if (_matrix[x][y] == _bombNum) {
+    } else if (btn[x][y].isBomb()) {
       for (int x = 0; x < edge; x++) {
         for (int y = 0; y < edge; y++) {
           onPressed(x, y, edge, true);
         }
       }
+
       showSnackBar(context, "Oops, you stepped on a mine...");
-      _endTimer = Timer(const Duration(seconds: 5), () {
-        setState(() {
-          restart(_edge, _bombs);
-        });
-      });
+      _endTimer = Timer(
+        const Duration(seconds: 5),
+        () {
+          setState(
+            () {
+              restart(_edge, _bombs);
+            },
+          );
+        },
+      );
     }
   }
 
   void restart(int edge, int bombs) {
-    _buttonMatrix = <List<ElevatedButton>>[];
-    _matrix = <List<int>>[];
-    _pressed = <List<bool>>[];
+    btn = <List<BombButton>>[];
 
     for (int x = 0; x < edge; x++) {
-      _buttonMatrix.add(<ElevatedButton>[]);
-      _matrix.add(<int>[]);
-      _pressed.add(<bool>[]);
+      btn.add(<BombButton>[]);
 
       for (int y = 0; y < edge; y++) {
-        _pressed.last.add(false);
-        _matrix.last.add(_emptyNum);
-
-        _buttonMatrix.last.add(
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                onPressed(x, y, edge);
-              });
+        btn.last.add(
+          BombButton(
+            () {
+              setState(
+                () {
+                  onPressed(x, y, edge);
+                },
+              );
             },
-            style: OutlinedButton.styleFrom(
-                minimumSize: const Size(65, 65),
-                backgroundColor: _pressed[x][y]
-                    ? Colors.orange.shade500
-                    : Colors.green.shade900),
-            child: Text(_pressed[x][y]
-                ? (_matrix[x][y] == _bombNum ? _bomb : _matrix[x][y].toString())
-                : _empty),
           ),
         );
       }
@@ -159,7 +152,7 @@ class MainPageState extends State<MainPage> {
   bool checkWin() {
     for (int x = 0; x < _edge; x++) {
       for (int y = 0; y < _edge; y++) {
-        if (!_pressed[x][y] && _matrix[x][y] != _bombNum) {
+        if (!btn[x][y].isPressed() && !btn[x][y].isBomb()) {
           return false;
         }
       }
@@ -169,35 +162,23 @@ class MainPageState extends State<MainPage> {
   }
 
   MainPageState() {
-    _buttonMatrix = <List<ElevatedButton>>[];
-    _matrix = <List<int>>[];
-    _pressed = <List<bool>>[];
-    _endTimer = Timer(const Duration(seconds: 0), () {});
+    _endTimer = Timer(const Duration(milliseconds: 1), () {});
+
+    btn = <List<BombButton>>[];
 
     for (int x = 0; x < _defaultEdge; x++) {
-      _buttonMatrix.add(<ElevatedButton>[]);
-      _matrix.add(<int>[]);
-      _pressed.add(<bool>[]);
+      btn.add(<BombButton>[]);
 
       for (int y = 0; y < _defaultEdge; y++) {
-        _pressed.last.add(false);
-        _matrix.last.add(_emptyNum);
-
-        _buttonMatrix.last.add(
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                onPressed(x, y, _defaultEdge);
-              });
+        btn.last.add(
+          BombButton(
+            () {
+              setState(
+                () {
+                  onPressed(x, y, _defaultEdge);
+                },
+              );
             },
-            style: OutlinedButton.styleFrom(
-                minimumSize: const Size(65, 65),
-                backgroundColor: _pressed[x][y]
-                    ? Colors.orange.shade500
-                    : Colors.green.shade900),
-            child: Text(_pressed[x][y]
-                ? (_matrix[x][y] == _bombNum ? _bomb : _matrix[x][y].toString())
-                : _empty),
           ),
         );
       }
@@ -212,7 +193,7 @@ class MainPageState extends State<MainPage> {
     _mainRow =
         Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[]);
 
-    for (int x = 0; x < _buttonMatrix.length; x++) {
+    for (int x = 0; x < btn.length; x++) {
       _mainRow.children.add(
         Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -220,26 +201,8 @@ class MainPageState extends State<MainPage> {
         ),
       );
 
-      for (int y = 0; y < _buttonMatrix[x].length; y++) {
-        (_mainRow.children.last as Column).children.add(
-              _buttonMatrix[x][y] = ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    onPressed(x, y, _defaultEdge);
-                  });
-                },
-                style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(65, 65),
-                    backgroundColor: _pressed[x][y]
-                        ? Colors.orange.shade500
-                        : Colors.green.shade900),
-                child: Text(_pressed[x][y]
-                    ? (_matrix[x][y] == _bombNum
-                        ? _bomb
-                        : _matrix[x][y].toString())
-                    : _empty),
-              ),
-            );
+      for (int y = 0; y < btn[x].length; y++) {
+        (_mainRow.children.last as Column).children.add(btn[x][y].getButton());
       }
     }
 
