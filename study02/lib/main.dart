@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:study02/main_page.dart';
 
 void main() {
-  runApp(const AApp());
+  runApp(const GameApp());
 }
 
-class AApp extends StatelessWidget {
-  const AApp({super.key});
+class GameApp extends StatelessWidget {
+  const GameApp({super.key});
 
   @override
   Widget build(BuildContext context) {
