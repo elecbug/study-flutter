@@ -22,7 +22,7 @@ class MainPageState extends State<MainPage> {
   late List<List<bool>> _pressed;
 
   late Row _mainRow;
-  late Timer _endTimer = Timer(const Duration(seconds: 0), () {});
+  late Timer _endTimer;
 
   void makeBombs(int max, int totalBombs) {
     int sum = 0;
@@ -64,7 +64,7 @@ class MainPageState extends State<MainPage> {
   void onPressed(int x, int y, int edge, [bool check = false]) {
     _pressed[x][y] = true;
 
-    if (check || _endTimer != null && _endTimer.isActive) {
+    if (check || _endTimer.isActive) {
       return;
     } else if (checkWin()) {
       showSnackBar(context, "You Win!!!");
@@ -76,14 +76,14 @@ class MainPageState extends State<MainPage> {
     }
 
     if (_matrix[x][y] == 0) {
-      if (x > 0 && !_pressed[x - 1][y]) {
-        onPressed(x - 1, y, edge);
+      if (x > 0) {
+        if (!_pressed[x - 1][y]) onPressed(x - 1, y, edge);
         if (y > 0 && !_pressed[x - 1][y - 1]) onPressed(x - 1, y - 1, edge);
         if (y < edge - 1 && !_pressed[x - 1][y + 1])
           onPressed(x - 1, y + 1, edge);
       }
-      if (x < edge - 1 && !_pressed[x + 1][y]) {
-        onPressed(x + 1, y, edge);
+      if (x < edge - 1) {
+        if (!_pressed[x + 1][y]) onPressed(x + 1, y, edge);
         if (y > 0 && !_pressed[x + 1][y - 1]) onPressed(x + 1, y - 1, edge);
         if (y < edge - 1 && !_pressed[x + 1][y + 1])
           onPressed(x + 1, y + 1, edge);
@@ -172,6 +172,7 @@ class MainPageState extends State<MainPage> {
     _buttonMatrix = <List<ElevatedButton>>[];
     _matrix = <List<int>>[];
     _pressed = <List<bool>>[];
+    _endTimer = Timer(const Duration(seconds: 0), () {});
 
     for (int x = 0; x < _defaultEdge; x++) {
       _buttonMatrix.add(<ElevatedButton>[]);
