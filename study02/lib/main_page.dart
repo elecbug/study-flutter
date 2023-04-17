@@ -64,7 +64,7 @@ class MainPageState extends State<MainPage> {
   void onPressed(int x, int y, int edge, [bool check = false]) {
     _pressed[x][y] = true;
 
-    if (check || _endTimer != null && _endTimer!.isActive) {
+    if (check || _endTimer != null && _endTimer.isActive) {
       return;
     } else if (checkWin()) {
       showSnackBar(context, "You Win!!!");
